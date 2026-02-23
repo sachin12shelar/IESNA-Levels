@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IESNA Illuminance Reference — Lighting Levels by Space Type</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10; --surface: #111318; --surface2: #181c24; --border: #252a36;
+    --accent: #f5c842; --accent2: #3de8a0; --accent3: #5b9cf6;
+    --text: #e8eaf0; --muted: #6b7280; --danger: #ff6b6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; min-height: 100vh; padding-bottom: 60px; }
+
+  header { background: linear-gradient(135deg,#0a0c10 0%,#131720 60%,#0e1520 100%); border-bottom: 2px solid var(--accent); padding: 36px 48px 28px; position: relative; overflow: hidden; }
+  header::before { content:''; position:absolute; top:-40px; right:-40px; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle,rgba(245,200,66,.12) 0%,transparent 70%); pointer-events:none; }
+  .header-label { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:10px; }
+  h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(32px,5vw,58px); letter-spacing:2px; line-height:1; color:var(--text); margin-bottom:8px; }
+  h1 span { color:var(--accent); }
+  .subtitle { font-size:13px; color:var(--muted); font-weight:300; letter-spacing:.5px; }
+
+  .info-bar { display:flex; gap:32px; flex-wrap:wrap; padding:10px 48px; background:rgba(245,200,66,.04); border-bottom:1px solid var(--border); font-size:11px; font-family:'IBM Plex Mono',monospace; color:var(--muted); }
+  .info-bar span { color:var(--accent); font-weight:600; }
+
+  .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; padding:20px 48px; background:var(--surface); border-bottom:1px solid var(--border); }
+  .search-wrap { position:relative; flex:1; min-width:200px; max-width:340px; }
+  .search-wrap input { width:100%; padding:9px 14px 9px 36px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:13px; outline:none; transition:border-color .2s; }
+  .search-wrap input:focus { border-color:var(--accent); }
+  .search-wrap::before { content:'⌕'; position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:16px; pointer-events:none; }
+  .filter-group { display:flex; gap:6px; flex-wrap:wrap; }
+  .filter-btn { padding:7px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.5px; cursor:pointer; transition:all .2s; white-space:nowrap; }
+  .filter-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .filter-btn.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
+
+  .legend { display:flex; gap:18px; flex-wrap:wrap; padding:12px 48px 4px; font-size:11.5px; font-family:'IBM Plex Mono',monospace; align-items:center; }
+  .legend-item { display:flex; align-items:center; gap:6px; color:var(--muted); }
+  .legend-dot { width:10px; height:10px; border-radius:2px; }
+  .legend-div { border-left:1px solid var(--border); padding-left:18px; margin-left:4px; display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+
+  .row-count { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); padding:8px 48px 4px; }
+  .table-wrap { padding:16px 48px; overflow-x:auto; }
+
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  thead tr { background:var(--surface2); }
+  th { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); padding:11px 12px; text-align:left; border-bottom:2px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
+  th:hover { color:var(--accent); }
+  th.sorted { color:var(--accent); }
+  .sa { margin-left:3px; opacity:.4; }
+  th.sorted .sa { opacity:1; }
+
+  tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+  tbody tr:hover { background:rgba(245,200,66,.04); }
+  tbody tr.cat-row { background:var(--surface2); }
+  tbody tr.cat-row:hover { background:var(--surface2); }
+  td { padding:10px 12px; vertical-align:middle; }
+
+  .cat-label { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:2px; display:flex; align-items:center; gap:8px; }
+  .cat-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .area-name { font-weight:500; color:var(--text); line-height:1.3; }
+
+  .fc-badge { display:inline-block; padding:3px 9px; border-radius:4px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:500; background:var(--surface2); border:1px solid var(--border); white-space:nowrap; }
+  .fc-badge.low  { border-color:var(--accent3); color:var(--accent3); }
+  .fc-badge.med  { border-color:var(--accent2); color:var(--accent2); }
+  .fc-badge.high { border-color:var(--accent);  color:var(--accent);  }
+  .fc-badge.vhigh{ border-color:var(--danger);  color:var(--danger);  }
+
+  .min-fc { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text); }
+  .height-tag { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); background:rgba(255,255,255,.04); padding:2px 7px; border-radius:3px; display:inline-block; white-space:nowrap; }
+
+  .ratio-pill { display:inline-block; padding:2px 8px; border-radius:3px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:500; white-space:nowrap; }
+  .r-tight { background:rgba(61,232,160,.12); color:var(--accent2); border:1px solid rgba(61,232,160,.25); }
+  .r-mod   { background:rgba(245,200,66,.10); color:var(--accent);  border:1px solid rgba(245,200,66,.25); }
+  .r-wide  { background:rgba(255,107,107,.10); color:var(--danger); border:1px solid rgba(255,107,107,.25); }
+
+  .notes-col { color:var(--muted); font-size:11.5px; max-width:200px; }
+  .no-results { text-align:center; padding:60px; color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:14px; }
+
+  @media(max-width:768px){
+    header,.controls,.table-wrap,.legend,.row-count,.info-bar{padding-left:16px;padding-right:16px;}
+    th,td{padding:9px 8px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">IESNA · IES RP-1 / RP-3 / RP-6 / RP-7 / RP-8 / RP-20 / RP-33 / DG-18</div>
+  <h1>ILLUMINANCE <span>LEVELS</span></h1>
+  <div class="subtitle">Recommended Avg FC Range &nbsp;·&nbsp; Minimum FC &nbsp;·&nbsp; Avg/Min &amp; Max/Min Uniformity Ratios by Space Type</div>
+</header>
+
+<div class="info-bar">
+  <div><span>Avg FC</span> = Recommended maintained average illuminance (maintained means at end-of-life lamp / dirty luminaire)</div>
+  <div><span>Min FC</span> = Minimum point illuminance anywhere in the space</div>
+  <div><span>Avg/Min ≤</span> = Uniformity limit (lower = more uniform)</div>
+  <div><span>Max/Min ≤</span> = Contrast limit (controls glare &amp; discomfort)</div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap"><input type="text" id="searchInput" placeholder="Search area or application…"></div>
+  <div class="filter-group" id="filterGroup">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="Office">Office</button>
+    <button class="filter-btn" data-filter="Industrial">Industrial</button>
+    <button class="filter-btn" data-filter="Healthcare">Healthcare</button>
+    <button class="filter-btn" data-filter="Hospitality">Hospitality</button>
+    <button class="filter-btn" data-filter="Common Area">Common Area</button>
+    <button class="filter-btn" data-filter="Educational">Educational</button>
+    <button class="filter-btn" data-filter="Sports">Sports &amp; Rec</button>
+    <button class="filter-btn" data-filter="Outdoor">Outdoor</button>
+    <button class="filter-btn" data-filter="Facade">Facade</button>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#5b9cf6"></div>Low (≤10 FC)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3de8a0"></div>Medium (11–50 FC)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f5c842"></div>High (51–100 FC)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b"></div>Very High (&gt;100 FC)</div>
+  <div class="legend-div">
+    <div class="legend-item"><span class="ratio-pill r-tight">≤2:1</span>&nbsp;Tight uniform</div>
+    <div class="legend-item"><span class="ratio-pill r-mod">2–4:1</span>&nbsp;Moderate</div>
+    <div class="legend-item"><span class="ratio-pill r-wide">&gt;4:1</span>&nbsp;Wide / accent</div>
+  </div>
+</div>
+
+<div class="row-count" id="rowCount"></div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th data-col="category">Category<span class="sa">↕</span></th>
+        <th data-col="area">Area / Application<span class="sa">↕</span></th>
+        <th data-col="fcMin">Avg FC (Range)<span class="sa">↕</span></th>
+        <th data-col="minFC">Min FC<span class="sa">↕</span></th>
+        <th data-col="height">Meas. Height<span class="sa">↕</span></th>
+        <th data-col="avgMin">Avg / Min ≤<span class="sa">↕</span></th>
+        <th data-col="maxMin">Max / Min ≤<span class="sa">↕</span></th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div class="no-results" id="noResults" style="display:none">No matching spaces found.</div>
+</div>
+
+<script>
+const DATA = [
+  // OFFICE
+  {category:"Office",area:"Private / Executive Office",     fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",      avgMin:2.0, maxMin:5.0,  notes:"Task at desk; ambient 20–30 FC"},
+  {category:"Office",area:"Open Office / Workstations",     fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",      avgMin:2.0, maxMin:5.0,  notes:"Horizontal work plane"},
+  {category:"Office",area:"Conference / Meeting Rooms",      fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",      avgMin:2.0, maxMin:5.0,  notes:"Dimmable preferred for AV use"},
+  {category:"Office",area:"Reception / Lobby",              fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:"Accent + ambient combined"},
+  {category:"Office",area:"Corridors / Hallways",           fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:"Egress and wayfinding"},
+  {category:"Office",area:"Copy / Print Room",              fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",      avgMin:2.0, maxMin:5.0,  notes:"Task-oriented environment"},
+  {category:"Office",area:"Storage / File Rooms",           fc:"20–30",  fcMin:20,  minFC:10,  height:"2.5 ft AFF",      avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Office",area:"Stairways",                      fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:"Egress code may apply"},
+  // INDUSTRIAL
+  {category:"Industrial",area:"Rough / Heavy Manufacturing",     fc:"20–30",  fcMin:20,  minFC:10,  height:"0–3 ft AFF",  avgMin:3.0, maxMin:10.0, notes:"IES RP-7; measured at task plane"},
+  {category:"Industrial",area:"Medium / Bench Work",             fc:"50–75",  fcMin:50,  minFC:30,  height:"3 ft AFF",    avgMin:3.0, maxMin:10.0, notes:"Assembly of medium-sized parts"},
+  {category:"Industrial",area:"Fine / Precision Assembly",       fc:"100–200",fcMin:100, minFC:50,  height:"3 ft AFF",    avgMin:2.0, maxMin:5.0,  notes:"Electronic components, fine detail"},
+  {category:"Industrial",area:"Inspection / Quality Control",    fc:"100–500",fcMin:100, minFC:50,  height:"3 ft AFF",    avgMin:2.0, maxMin:4.0,  notes:"Very fine tasks up to 500 FC"},
+  {category:"Industrial",area:"Warehouse — Active",              fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:4.0, maxMin:10.0, notes:"Forklift paths; higher at pick faces"},
+  {category:"Industrial",area:"Warehouse — Inactive / Bulk",     fc:"5–10",   fcMin:5,   minFC:2,   height:"0 ft (floor)",avgMin:5.0, maxMin:20.0, notes:""},
+  {category:"Industrial",area:"Loading Docks",                   fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Industrial",area:"Mechanical / Boiler Rooms",       fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Industrial",area:"Electrical Rooms",                fc:"30–50",  fcMin:30,  minFC:20,  height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Industrial",area:"Paint Spray Booths",              fc:"50–100", fcMin:50,  minFC:30,  height:"3 ft AFF",    avgMin:2.0, maxMin:5.0,  notes:"CRI ≥90; color rendering critical"},
+  // HEALTHCARE
+  {category:"Healthcare",area:"Patient Room — General",          fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:"Low ambient; exam task 30 FC"},
+  {category:"Healthcare",area:"Patient Room — Reading / Exam",   fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",  avgMin:2.0, maxMin:5.0,  notes:"At bedside task level"},
+  {category:"Healthcare",area:"Nurse Station",                   fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",  avgMin:2.0, maxMin:5.0,  notes:""},
+  {category:"Healthcare",area:"Corridors (Day)",                 fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Healthcare",area:"Corridors (Night)",               fc:"2–5",    fcMin:2,   minFC:1,   height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:"Night mode for patient comfort"},
+  {category:"Healthcare",area:"Examination Room",                fc:"50–75",  fcMin:50,  minFC:30,  height:"2.5 ft AFF",  avgMin:2.0, maxMin:5.0,  notes:""},
+  {category:"Healthcare",area:"Operating / Surgical Suite",      fc:"150–200",fcMin:150, minFC:100, height:"3 ft AFF",    avgMin:2.0, maxMin:4.0,  notes:"Surgical field: 2,000–10,000 FC"},
+  {category:"Healthcare",area:"Emergency Treatment Room",        fc:"75–100", fcMin:75,  minFC:50,  height:"2.5 ft AFF",  avgMin:2.0, maxMin:4.0,  notes:""},
+  {category:"Healthcare",area:"Pharmacy",                        fc:"75–100", fcMin:75,  minFC:50,  height:"2.5 ft AFF",  avgMin:2.0, maxMin:5.0,  notes:"Good color rendering critical"},
+  {category:"Healthcare",area:"Laboratories",                    fc:"75–100", fcMin:75,  minFC:50,  height:"2.5 ft AFF",  avgMin:2.0, maxMin:5.0,  notes:""},
+  {category:"Healthcare",area:"Waiting / Lobby Areas",           fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Healthcare",area:"Radiology / Imaging",             fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:"Dimmable; avoid film interference"},
+  // HOSPITALITY
+  {category:"Hospitality",area:"Hotel Guest Room — General",     fc:"5–15",   fcMin:5,   minFC:2,   height:"0 ft (floor)",    avgMin:5.0, maxMin:20.0, notes:"Layered lighting approach"},
+  {category:"Hospitality",area:"Hotel Guest Room — Reading",     fc:"20–30",  fcMin:20,  minFC:10,  height:"2.5 ft AFF",      avgMin:3.0, maxMin:10.0, notes:"Bedside or desk task"},
+  {category:"Hospitality",area:"Hotel Lobby",                    fc:"10–30",  fcMin:10,  minFC:5,   height:"0 ft (floor)",    avgMin:4.0, maxMin:15.0, notes:"Dramatic accent + ambient"},
+  {category:"Hospitality",area:"Restaurant — Fine Dining",       fc:"5–10",   fcMin:5,   minFC:2,   height:"2.5 ft (table)",  avgMin:5.0, maxMin:20.0, notes:"Intimate; candle-level ambience"},
+  {category:"Hospitality",area:"Restaurant — Casual Dining",     fc:"10–30",  fcMin:10,  minFC:5,   height:"2.5 ft (table)",  avgMin:4.0, maxMin:15.0, notes:""},
+  {category:"Hospitality",area:"Restaurant — Fast Food / Café",  fc:"30–50",  fcMin:30,  minFC:15,  height:"2.5 ft (table)",  avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Hospitality",area:"Banquet / Ballroom",             fc:"10–30",  fcMin:10,  minFC:5,   height:"0 ft (floor)",    avgMin:4.0, maxMin:15.0, notes:"Fully dimmable system recommended"},
+  {category:"Hospitality",area:"Bar / Lounge",                   fc:"5–15",   fcMin:5,   minFC:2,   height:"3.5 ft (bar top)",avgMin:5.0, maxMin:20.0, notes:""},
+  {category:"Hospitality",area:"Kitchen / Back of House",        fc:"50–70",  fcMin:50,  minFC:30,  height:"3 ft AFF",        avgMin:2.0, maxMin:5.0,  notes:"Food prep safety"},
+  {category:"Hospitality",area:"Corridors / Elevator Lobby",     fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:""},
+  // COMMON AREA
+  {category:"Common Area",area:"Building Lobby / Atrium",        fc:"20–50",  fcMin:20,  minFC:10,  height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:"Often accent-heavy"},
+  {category:"Common Area",area:"Elevator Cab",                   fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Common Area",area:"Stairwells",                     fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:"IBC egress ≥1 FC min."},
+  {category:"Common Area",area:"Restrooms",                      fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:"Vanity: 5 ft AFF facial plane"},
+  {category:"Common Area",area:"Cafeteria / Break Room",         fc:"20–50",  fcMin:20,  minFC:10,  height:"2.5 ft AFF",      avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Common Area",area:"Fitness / Exercise Room",        fc:"30–50",  fcMin:30,  minFC:15,  height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:""},
+  {category:"Common Area",area:"Retail — General Merchandise",   fc:"30–50",  fcMin:30,  minFC:15,  height:"0 ft (floor)",    avgMin:3.0, maxMin:10.0, notes:"Accent 3–5× ambient"},
+  {category:"Common Area",area:"Retail — Feature / Display",     fc:"75–150", fcMin:75,  minFC:30,  height:"Display surface",  avgMin:3.0, maxMin:10.0, notes:"Accent emphasis"},
+  {category:"Common Area",area:"Parking Garage — Driving Lanes", fc:"3–5",    fcMin:3,   minFC:1,   height:"0 ft (floor)",    avgMin:4.0, maxMin:10.0, notes:"IES RP-20; day/night ratios apply"},
+  {category:"Common Area",area:"Parking Garage — Pedestrian",    fc:"5–10",   fcMin:5,   minFC:2,   height:"0 ft (floor)",    avgMin:4.0, maxMin:10.0, notes:""},
+  // EDUCATIONAL
+  {category:"Educational",area:"Classroom — General",            fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",avgMin:2.0, maxMin:5.0,  notes:"IES RP-3; uniform + dimmable"},
+  {category:"Educational",area:"Classroom — Lecture / AV",       fc:"20–30",  fcMin:20,  minFC:10,  height:"2.5 ft AFF",avgMin:2.0, maxMin:5.0,  notes:"Reduce for screen viewing"},
+  {category:"Educational",area:"Library — Reading Area",         fc:"30–50",  fcMin:30,  minFC:20,  height:"2.5 ft AFF",avgMin:2.0, maxMin:5.0,  notes:""},
+  {category:"Educational",area:"Library — Stack Area",           fc:"20–30",  fcMin:20,  minFC:10,  height:"2.5 ft AFF (vert)",avgMin:3.0,maxMin:10.0,notes:"Vertical illuminance on spines"},
+  {category:"Educational",area:"Computer Lab",                   fc:"20–30",  fcMin:20,  minFC:10,  height:"2.5 ft AFF",avgMin:2.0, maxMin:5.0,  notes:"Reduce veiling reflections on screens"},
+  {category:"Educational",area:"Art Studio / Design Room",       fc:"50–75",  fcMin:50,  minFC:30,  height:"2.5 ft AFF",avgMin:2.0, maxMin:4.0,  notes:"CRI ≥95; even diffuse light"},
+  {category:"Educational",area:"Science Lab",                    fc:"50–75",  fcMin:50,  minFC:30,  height:"2.5 ft AFF",avgMin:2.0, maxMin:5.0,  notes:""},
+  {category:"Educational",area:"Gymnasium (Non-competitive)",     fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:3.0,maxMin:10.0, notes:""},
+  {category:"Educational",area:"Auditorium / Multipurpose",      fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",avgMin:3.0,maxMin:10.0, notes:"Stage lighting separate"},
+  {category:"Educational",area:"Corridors / Lockers",            fc:"10–20",  fcMin:10,  minFC:5,   height:"0 ft (floor)",avgMin:3.0,maxMin:10.0, notes:""},
+  // SPORTS
+  {category:"Sports",area:"Indoor Basketball — Practice",        fc:"30–50",  fcMin:30,  minFC:20,  height:"0 ft (floor)",avgMin:2.0, maxMin:4.0, notes:"IES RP-6"},
+  {category:"Sports",area:"Indoor Basketball — Competitive",     fc:"75–100", fcMin:75,  minFC:50,  height:"0 ft (floor)",avgMin:2.0, maxMin:3.0, notes:"TV broadcast: 150+ FC"},
+  {category:"Sports",area:"Indoor Tennis — Recreational",        fc:"30–50",  fcMin:30,  minFC:20,  height:"3 ft AFF",    avgMin:2.0, maxMin:4.0, notes:""},
+  {category:"Sports",area:"Indoor Tennis — Competitive",         fc:"75–100", fcMin:75,  minFC:50,  height:"3 ft AFF",    avgMin:2.0, maxMin:3.0, notes:""},
+  {category:"Sports",area:"Swimming Pool — Recreational",        fc:"30–50",  fcMin:30,  minFC:20,  height:"Water surface",avgMin:2.5,maxMin:5.0, notes:""},
+  {category:"Sports",area:"Swimming Pool — Competitive",         fc:"75–100", fcMin:75,  minFC:50,  height:"Water surface",avgMin:2.0,maxMin:4.0, notes:""},
+  {category:"Sports",area:"Outdoor Football — Class I (TV)",     fc:"100–200",fcMin:100, minFC:75,  height:"0 ft (floor)",avgMin:2.0, maxMin:3.0, notes:"Horizontal + vertical FC both checked"},
+  {category:"Sports",area:"Outdoor Football — Class II",         fc:"50–75",  fcMin:50,  minFC:30,  height:"0 ft (floor)",avgMin:2.0, maxMin:4.0, notes:"Scholastic competitive"},
+  {category:"Sports",area:"Outdoor Football — Class III",        fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:2.5, maxMin:5.0, notes:"Recreational / training"},
+  {category:"Sports",area:"Outdoor Baseball — Class I (Infield)",fc:"100–150",fcMin:100, minFC:75,  height:"0 ft (floor)",avgMin:2.0, maxMin:3.0, notes:"Outfield ≥50 FC"},
+  {category:"Sports",area:"Outdoor Baseball — Class II / III",   fc:"30–75",  fcMin:30,  minFC:20,  height:"0 ft (floor)",avgMin:2.5, maxMin:5.0, notes:""},
+  {category:"Sports",area:"Tennis — Outdoor Recreational",       fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:2.5, maxMin:5.0, notes:""},
+  {category:"Sports",area:"Tennis — Outdoor Competitive",        fc:"50–75",  fcMin:50,  minFC:30,  height:"0 ft (floor)",avgMin:2.0, maxMin:4.0, notes:""},
+  {category:"Sports",area:"Golf Driving Range",                  fc:"5–10 (tee) / 2–5 (range)",fcMin:5,minFC:2,height:"0 ft (floor)",avgMin:5.0,maxMin:15.0,notes:""},
+  {category:"Sports",area:"Bowling Alley",                       fc:"30–50",  fcMin:30,  minFC:15,  height:"0 ft (floor)",avgMin:3.0, maxMin:10.0,notes:"Approach / pins highlighted"},
+  // OUTDOOR
+  {category:"Outdoor",area:"Roadway — Arterial (High Traffic)",  fc:"1.2–2.0",fcMin:1.2, minFC:0.6, height:"0 ft (floor)",avgMin:3.0, maxMin:6.0,  notes:"IES RP-8; pavement type affects criteria"},
+  {category:"Outdoor",area:"Roadway — Collector (Medium)",       fc:"0.8–1.2",fcMin:0.8, minFC:0.4, height:"0 ft (floor)",avgMin:3.0, maxMin:6.0,  notes:""},
+  {category:"Outdoor",area:"Roadway — Local / Residential",      fc:"0.4–0.8",fcMin:0.4, minFC:0.2, height:"0 ft (floor)",avgMin:4.0, maxMin:10.0, notes:""},
+  {category:"Outdoor",area:"Pedestrian Walkways / Paths",        fc:"0.5–2.0",fcMin:0.5, minFC:0.2, height:"0 ft (floor)",avgMin:4.0, maxMin:10.0, notes:"Varies by conflict zone / activity"},
+  {category:"Outdoor",area:"Surface Parking — Active",           fc:"1.5–2.0",fcMin:1.5, minFC:0.5, height:"0 ft (floor)",avgMin:4.0, maxMin:10.0, notes:"IES RP-20"},
+  {category:"Outdoor",area:"Surface Parking — Security Zone",    fc:"3–5",    fcMin:3,   minFC:1,   height:"0 ft (floor)",avgMin:4.0, maxMin:10.0, notes:"Uniformity critical"},
+  {category:"Outdoor",area:"Building Entrance (Active Hours)",   fc:"5–10",   fcMin:5,   minFC:2,   height:"0 ft (floor)",avgMin:3.0, maxMin:10.0, notes:"Transition from dark exterior"},
+  {category:"Outdoor",area:"Plaza / Outdoor Seating",            fc:"2–5",    fcMin:2,   minFC:0.5, height:"0 ft (floor)",avgMin:4.0, maxMin:10.0, notes:""},
+  {category:"Outdoor",area:"Security / Perimeter Zones",         fc:"2–5",    fcMin:2,   minFC:0.5, height:"0 ft (floor)",avgMin:4.0, maxMin:10.0, notes:"Uniformity critical"},
+  {category:"Outdoor",area:"Canopy / Gas Station",               fc:"20–30",  fcMin:20,  minFC:10,  height:"0 ft (floor)",avgMin:2.5, maxMin:5.0,  notes:"IES RP-33"},
+  {category:"Outdoor",area:"Outdoor Dining / Terrace",           fc:"3–5",    fcMin:3,   minFC:1,   height:"2.5 ft (table)",avgMin:4.0,maxMin:10.0, notes:""},
+  // FACADE
+  {category:"Facade",area:"Facade — High Ambient (City Center)", fc:"15–30",  fcMin:15,  minFC:8,   height:"Vertical surface",avgMin:3.0,maxMin:8.0,  notes:"IES DG-18; bright surroundings"},
+  {category:"Facade",area:"Facade — Medium Ambient (Suburban)",  fc:"8–15",   fcMin:8,   minFC:4,   height:"Vertical surface",avgMin:3.0,maxMin:8.0,  notes:""},
+  {category:"Facade",area:"Facade — Low Ambient (Rural)",        fc:"3–8",    fcMin:3,   minFC:1.5, height:"Vertical surface",avgMin:3.0,maxMin:8.0,  notes:""},
+  {category:"Facade",area:"Entrance / Canopy Accent",            fc:"20–50",  fcMin:20,  minFC:10,  height:"Vertical surface",avgMin:3.0,maxMin:10.0, notes:"3–5× facade average"},
+  {category:"Facade",area:"Sign Illumination (Self-lit Surface)",fc:"50–100", fcMin:50,  minFC:25,  height:"Sign face (vert.)",avgMin:2.5,maxMin:6.0,  notes:"Varies by ambient zone"},
+  {category:"Facade",area:"Landscape / Tree Up-lighting",        fc:"5–20",   fcMin:5,   minFC:2,   height:"Vertical surface",avgMin:4.0,maxMin:15.0, notes:"Depends on canopy density"},
+  {category:"Facade",area:"Flood / Wash — Light Stone / Marble", fc:"5–15",   fcMin:5,   minFC:2,   height:"Vertical surface",avgMin:3.0,maxMin:8.0,  notes:"Light surfaces reflect more"},
+  {category:"Facade",area:"Flood / Wash — Dark Stone / Brick",   fc:"15–30",  fcMin:15,  minFC:8,   height:"Vertical surface",avgMin:3.0,maxMin:8.0,  notes:"Dark materials need more FC"},
+];
+
+const CAT_COLORS = {
+  "Office":"#5b9cf6","Industrial":"#ff6b6b","Healthcare":"#3de8a0",
+  "Hospitality":"#c084fc","Common Area":"#f97316","Educational":"#f5c842",
+  "Sports":"#22d3ee","Outdoor":"#a3e635","Facade":"#fb7185"
+};
+
+function fcClass(v){ return v<=10?'low':v<=50?'med':v<=100?'high':'vhigh'; }
+function ratioClass(r){ return r<=2?'r-tight':r<=4?'r-mod':'r-wide'; }
+
+let filter='all', query='', sortCol=null, sortAsc=true;
+
+function render(){
+  let rows = DATA.filter(r=>{
+    const mf = filter==='all'||r.category===filter;
+    const q  = query.toLowerCase();
+    const ms = !q||[r.area,r.category,r.notes,r.fc,r.height].some(s=>s.toLowerCase().includes(q));
+    return mf&&ms;
+  });
+  if(sortCol){
+    rows.sort((a,b)=>{
+      let av=a[sortCol], bv=b[sortCol];
+      if(typeof av==='string') av=av.toLowerCase();
+      if(typeof bv==='string') bv=bv.toLowerCase();
+      return sortAsc?(av>bv?1:-1):(av<bv?1:-1);
+    });
+  }
+  const tbody=document.getElementById('tableBody');
+  const noRes=document.getElementById('noResults');
+  document.getElementById('rowCount').textContent = rows.length
+    ? `Showing ${rows.length} of ${DATA.length} entries`
+    : '';
+  if(!rows.length){tbody.innerHTML='';noRes.style.display='block';return;}
+  noRes.style.display='none';
+  const grouped = sortCol&&sortCol!=='category';
+  let html='', lastCat=null;
+  rows.forEach(r=>{
+    const col = CAT_COLORS[r.category]||'#f5c842';
+    if(!grouped&&r.category!==lastCat){
+      html+=`<tr class="cat-row"><td colspan="8"><div class="cat-label"><span class="cat-dot" style="background:${col}"></span>${r.category.toUpperCase()}</div></td></tr>`;
+      lastCat=r.category;
+    }
+    html+=`<tr>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:${col};letter-spacing:1px">${r.category}</td>
+      <td><div class="area-name">${r.area}</div></td>
+      <td><span class="fc-badge ${fcClass(r.fcMin)}">${r.fc} FC</span></td>
+      <td class="min-fc">${r.minFC} FC</td>
+      <td><span class="height-tag">${r.height}</span></td>
+      <td><span class="ratio-pill ${ratioClass(r.avgMin)}">${r.avgMin.toFixed(1)} : 1</span></td>
+      <td><span class="ratio-pill ${ratioClass(r.maxMin)}">${r.maxMin.toFixed(1)} : 1</span></td>
+      <td class="notes-col">${r.notes}</td>
+    </tr>`;
+  });
+  tbody.innerHTML=html;
+}
+
+document.getElementById('searchInput').addEventListener('input',e=>{query=e.target.value;render();});
+document.getElementById('filterGroup').addEventListener('click',e=>{
+  const btn=e.target.closest('.filter-btn');
+  if(!btn)return;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filter=btn.dataset.filter;
+  render();
+});
+document.querySelectorAll('th[data-col]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col=th.dataset.col;
+    if(sortCol===col) sortAsc=!sortAsc; else{sortCol=col;sortAsc=true;}
+    document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    th.querySelector('.sa').textContent=sortAsc?'↑':'↓';
+    render();
+  });
+});
+render();
+</script>
+</body>
+</html>
