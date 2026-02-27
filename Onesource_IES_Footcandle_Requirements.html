@@ -47,6 +47,43 @@
     gap: 12px;
   }
 
+  .header-nav {
+    position: absolute;
+    top: 28px;
+    right: 80px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 9px 16px;
+    border-radius: 6px;
+    background: var(--surface);
+    transition: all 0.2s;
+  }
+
+  .header-nav:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--highlight);
+  }
+
+  .header-nav svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+
   .header-label {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
@@ -319,6 +356,10 @@
 <body>
 
 <header>
+   <a class="header-nav" href="iesna_lighting_levels.html">
+    <svg viewBox="0 0 24 24"><path d="M10 19l-7-7 7-7M3 12h18"/></svg>
+    ILLUMINANCE LEVELS
+  </a>
   <div class="header-label">Illuminating Engineering Society</div>
   <h1>Footcandle <span>Requirements</span></h1>
   <p class="header-sub">Selected illuminance recommendations from the <strong>IES Lighting Handbook</strong>. Individual applications will determine exact footcandle levels.</p>
