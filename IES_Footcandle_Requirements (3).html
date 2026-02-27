@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IES Footcandle Requirements</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f0e;
+    --surface: #141714;
+    --border: #2a2e2b;
+    --accent: #c8f55a;
+    --accent-dim: #8aab2a;
+    --text: #e8ede9;
+    --muted: #7a8a7c;
+    --highlight: #1a2018;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    border-bottom: 1px solid var(--border);
+    padding: 60px 80px 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.9;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .header-sub {
+    max-width: 560px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-top: 8px;
+  }
+
+  .header-sub strong { color: var(--text); font-weight: 500; }
+
+  /* ── Controls ── */
+  .controls {
+    position: relative;
+    z-index: 1;
+    padding: 20px 80px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Search row */
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .search-box input {
+    width: 320px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 11px 14px 11px 38px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .search-box::before {
+    content: '⌕';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 18px;
+    pointer-events: none;
+  }
+
+  .count-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .count-badge span { color: var(--accent); font-weight: 500; }
+
+  /* Filter chips row */
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 16px;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  .chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.03em;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+
+  .chip:hover {
+    border-color: var(--accent-dim);
+    color: var(--text);
+  }
+
+  .chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0d0f0e;
+    font-weight: 500;
+  }
+
+  .chip.all-chip {
+    border-color: var(--muted);
+  }
+
+  /* Main grid */
+  main {
+    position: relative;
+    z-index: 1;
+    padding: 40px 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 2px;
+  }
+
+  .category {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+    transition: background 0.2s;
+    animation: fadeUp 0.35s ease both;
+  }
+
+  .category:hover { background: var(--highlight); }
+  .category.hidden { display: none; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .category-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .category-title::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sub-heading {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin: 18px 0 8px;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.15s;
+  }
+
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: rgba(200,245,90,0.04); margin: 0 -8px; padding: 5px 8px; border-radius: 3px; }
+
+  .row-label { font-size: 13px; color: var(--muted); line-height: 1.4; flex: 1; }
+
+  .row-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  /* Highlight matched text */
+  mark {
+    background: transparent;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  #empty-state {
+    display: none;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    grid-column: 1 / -1;
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 30px 80px;
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .footnote {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 380px;
+  }
+
+  .footnote strong { color: var(--accent); }
+
+  @media (max-width: 768px) {
+    header, .controls, main, footer { padding-left: 20px; padding-right: 20px; }
+    main { grid-template-columns: 1fr; }
+    .search-box input { width: 100%; }
+    .count-badge { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Illuminating Engineering Society</div>
+  <h1>Footcandle <span>Requirements</span></h1>
+  <p class="header-sub">Selected illuminance recommendations from the <strong>IES Lighting Handbook</strong>. Individual applications will determine exact footcandle levels.</p>
+</header>
+
+<div class="controls">
+  <!-- Search row -->
+  <div class="search-row">
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Filter tasks or spaces…" oninput="applyFilters()">
+    </div>
+    <div class="count-badge">Showing <span id="visible-count">27</span> of 27 sections</div>
+  </div>
+
+  <!-- Section chips -->
+  <div class="filter-row">
+    <span class="filter-label">Section</span>
+    <button class="chip all-chip active" data-section="all" onclick="setChip(this)">All</button>
+    <button class="chip" data-section="Airplane Manufacturing" onclick="setChip(this)">Airplane Manufacturing</button>
+    <button class="chip" data-section="Assembly" onclick="setChip(this)">Assembly</button>
+    <button class="chip" data-section="Auditoriums" onclick="setChip(this)">Auditoriums</button>
+    <button class="chip" data-section="Automobile Manufacturing" onclick="setChip(this)">Automobile Manufacturing</button>
+    <button class="chip" data-section="Banks" onclick="setChip(this)">Banks</button>
+    <button class="chip" data-section="Barber Shops / Beauty Parlors" onclick="setChip(this)">Barber Shops / Beauty Parlors</button>
+    <button class="chip" data-section="Chemical Works" onclick="setChip(this)">Chemical Works</button>
+    <button class="chip" data-section="Clothing Manufacturer" onclick="setChip(this)">Clothing Manufacturer</button>
+    <button class="chip" data-section="Electrical Equipment Manufacturing" onclick="setChip(this)">Electrical Equipment Manufacturing</button>
+    <button class="chip" data-section="Food Service Facilities" onclick="setChip(this)">Food Service Facilities</button>
+    <button class="chip" data-section="Foundries" onclick="setChip(this)">Foundries</button>
+    <button class="chip" data-section="Garages — Motor Vehicles" onclick="setChip(this)">Garages — Motor Vehicles</button>
+    <button class="chip" data-section="Gymnasiums" onclick="setChip(this)">Gymnasiums</button>
+    <button class="chip" data-section="Hospitals" onclick="setChip(this)">Hospitals</button>
+    <button class="chip" data-section="Hotels" onclick="setChip(this)">Hotels</button>
+    <button class="chip" data-section="Iron & Steel Manufacturing" onclick="setChip(this)">Iron & Steel Manufacturing</button>
+    <button class="chip" data-section="Laundries" onclick="setChip(this)">Laundries</button>
+    <button class="chip" data-section="Library" onclick="setChip(this)">Library</button>
+    <button class="chip" data-section="Machine Shops" onclick="setChip(this)">Machine Shops</button>
+    <button class="chip" data-section="Materials Handling" onclick="setChip(this)">Materials Handling</button>
+    <button class="chip" data-section="Offices" onclick="setChip(this)">Offices</button>
+    <button class="chip" data-section="Paint Shop" onclick="setChip(this)">Paint Shop</button>
+    <button class="chip" data-section="Paper Manufacturing" onclick="setChip(this)">Paper Manufacturing</button>
+    <button class="chip" data-section="Printing" onclick="setChip(this)">Printing</button>
+    <button class="chip" data-section="Schools" onclick="setChip(this)">Schools</button>
+    <button class="chip" data-section="Sheet Metal Works" onclick="setChip(this)">Sheet Metal Works</button>
+    <button class="chip" data-section="Stores" onclick="setChip(this)">Stores</button>
+    <button class="chip" data-section="Textile Mills" onclick="setChip(this)">Textile Mills</button>
+    <button class="chip" data-section="Warehousing & Storage" onclick="setChip(this)">Warehousing & Storage</button>
+    <button class="chip" data-section="Welding" onclick="setChip(this)">Welding</button>
+    <button class="chip" data-section="Woodworking" onclick="setChip(this)">Woodworking</button>
+  </div>
+</div>
+
+<main id="grid">
+
+  <div class="category" data-section="Airplane Manufacturing">
+    <div class="category-title">Airplane Manufacturing</div>
+    <div class="row"><span class="row-label">Drilling, riveting, screw fastening</span><span class="row-value">75 fc</span></div>
+    <div class="row"><span class="row-label">Final assembly, hangar</span><span class="row-value">100 fc</span></div>
+    <div class="row"><span class="row-label">Inspection</span><span class="row-value">50–200 fc</span></div>
+    <div class="row"><span class="row-label">Welding</span><span class="row-value">50 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Assembly">
+    <div class="category-title">Assembly</div>
+    <div class="row"><span class="row-label">Rough easy seeing</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Rough difficult seeing</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Medium</span><span class="row-value">100–200 fc</span></div>
+    <div class="row"><span class="row-label">Fine <sup>(a)</sup></span><span class="row-value">200–500 fc</span></div>
+    <div class="row"><span class="row-label">Extra fine <sup>(a)</sup></span><span class="row-value">500–1000 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Auditoriums">
+    <div class="category-title">Auditoriums</div>
+    <div class="row"><span class="row-label">Social activities</span><span class="row-value">5–10 fc</span></div>
+    <div class="row"><span class="row-label">Assembly only</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Exhibitions</span><span class="row-value">10–20 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Automobile Manufacturing">
+    <div class="category-title">Automobile Manufacturing</div>
+    <div class="row"><span class="row-label">Final assembly, finishing, inspecting</span><span class="row-value">200 fc</span></div>
+    <div class="row"><span class="row-label">Body & chassis assembly</span><span class="row-value">100 fc</span></div>
+    <div class="row"><span class="row-label">Body parts manufacturing</span><span class="row-value">100 fc</span></div>
+    <div class="row"><span class="row-label">Frame assembly</span><span class="row-value">50 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Banks">
+    <div class="category-title">Banks</div>
+    <div class="row"><span class="row-label">Lobby general</span><span class="row-value">10–50 fc</span></div>
+    <div class="row"><span class="row-label">Writing areas</span><span class="row-value">20–70 fc</span></div>
+    <div class="row"><span class="row-label">Teller stations, posting & keypunch</span><span class="row-value">50–150 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Barber Shops / Beauty Parlors">
+    <div class="category-title">Barber Shops / Beauty Parlors</div>
+    <div class="row"><span class="row-label">General</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Chemical Works">
+    <div class="category-title">Chemical Works</div>
+    <div class="row"><span class="row-label">General</span><span class="row-value">30 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Clothing Manufacturer">
+    <div class="category-title">Clothing Manufacturer</div>
+    <div class="row"><span class="row-label">Receiving, storing, shipping, winding, measuring</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Pattern making, trimming</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Shops, marking</span><span class="row-value">50–200 fc</span></div>
+    <div class="row"><span class="row-label">Cutting, pressing <sup>(a)</sup></span><span class="row-value">100–500 fc</span></div>
+    <div class="row"><span class="row-label">Sewing, inspection <sup>(a)</sup></span><span class="row-value">200–500 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Electrical Equipment Manufacturing">
+    <div class="category-title">Electrical Equipment Manufacturing</div>
+    <div class="row"><span class="row-label">Impregnating</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Insulating coil winding, testing</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Food Service Facilities">
+    <div class="category-title">Food Service Facilities</div>
+    <div class="sub-heading">Dining Areas</div>
+    <div class="row"><span class="row-label">Cashier</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Cleaning</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Dining</span><span class="row-value">5–20 fc</span></div>
+    <div class="row"><span class="row-label">Food displays</span><span class="row-value">30–100 fc</span></div>
+    <div class="row"><span class="row-label">Kitchen</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Foundries">
+    <div class="category-title">Foundries</div>
+    <div class="row"><span class="row-label">Annealing furnaces</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Cleaning</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Core making</span><span class="row-value">50–200 fc</span></div>
+    <div class="row"><span class="row-label">Inspection — Fine</span><span class="row-value">100–500 fc</span></div>
+    <div class="row"><span class="row-label">Inspection — Medium</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Molding</span><span class="row-value">50–200 fc</span></div>
+    <div class="row"><span class="row-label">Pouring, sorting</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Garages — Motor Vehicles">
+    <div class="category-title">Garages — Motor Vehicles</div>
+    <div class="row"><span class="row-label">Storage</span><span class="row-value">5 fc</span></div>
+    <div class="row"><span class="row-label">Parking garage (traffic lanes)</span><span class="row-value">10 fc</span></div>
+    <div class="row"><span class="row-label">Service garage</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Entrances</span><span class="row-value">50 fc</span></div>
+    <div class="row"><span class="row-label">Repair area</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Gymnasiums">
+    <div class="category-title">Gymnasiums</div>
+    <div class="row"><span class="row-label">Assemblies</span><span class="row-value">10 fc</span></div>
+    <div class="row"><span class="row-label">General exercise & recreation</span><span class="row-value">30 fc</span></div>
+    <div class="row"><span class="row-label">Exhibitions, matches</span><span class="row-value">50 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Hospitals">
+    <div class="category-title">Hospitals</div>
+    <div class="row"><span class="row-label">Rooms</span><span class="row-value">10–30 fc</span></div>
+    <div class="row"><span class="row-label">Corridors</span><span class="row-value">5–30 fc</span></div>
+    <div class="row"><span class="row-label">Emergency rooms</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Operating rooms</span><span class="row-value">100–200 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Hotels">
+    <div class="category-title">Hotels</div>
+    <div class="row"><span class="row-label">Bathrooms</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Bedrooms for reading</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Corridors, elevators and stairs</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Front desk</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Linen room — Sewing</span><span class="row-value">100–200 fc</span></div>
+    <div class="row"><span class="row-label">Linen room — General</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Lobby — General lighting</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Lobby — Reading & working areas</span><span class="row-value">20–50 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Iron & Steel Manufacturing">
+    <div class="category-title">Iron & Steel Manufacturing</div>
+    <div class="row"><span class="row-label">Stock, hot top, checker cellar, calcining</span><span class="row-value">10–30 fc</span></div>
+    <div class="row"><span class="row-label">Building, slag pits, stripping yard</span><span class="row-value">20 fc</span></div>
+    <div class="row"><span class="row-label">Control platforms, repairs, mixer building</span><span class="row-value">30 fc</span></div>
+    <div class="row"><span class="row-label">Rolling mills</span><span class="row-value">30–50 fc</span></div>
+    <div class="row"><span class="row-label">Shearing</span><span class="row-value">50 fc</span></div>
+    <div class="row"><span class="row-label">Tin plate</span><span class="row-value">50 fc</span></div>
+    <div class="row"><span class="row-label">Motor room, machine room</span><span class="row-value">30 fc</span></div>
+    <div class="row"><span class="row-label">Inspection</span><span class="row-value">100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Laundries">
+    <div class="category-title">Laundries</div>
+    <div class="row"><span class="row-label">Washing</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Ironing</span><span class="row-value">20–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Library">
+    <div class="category-title">Library</div>
+    <div class="row"><span class="row-label">Ordinary reading, stacks</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Book repair and binding</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Study & notes, cataloging, card files, check desk</span><span class="row-value">20–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Machine Shops">
+    <div class="category-title">Machine Shops</div>
+    <div class="row"><span class="row-label">Rough bench</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Medium bench, rough grinding, buffing</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Fine bench and work <sup>(a)</sup></span><span class="row-value">200–500 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Materials Handling">
+    <div class="category-title">Materials Handling</div>
+    <div class="row"><span class="row-label">Loading, trucking</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Picking stock, classifying</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Wrapping, packing, labeling</span><span class="row-value">20–50 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Offices">
+    <div class="category-title">Offices</div>
+    <div class="row"><span class="row-label">Accounting</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Audio-visual areas</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Conference areas</span><span class="row-value">20–70 fc</span></div>
+    <div class="row"><span class="row-label">Corridors, stairways <sup>(k)</sup></span><span class="row-value">20 fc</span></div>
+    <div class="row"><span class="row-label">Drafting</span><span class="row-value">50–200 fc</span></div>
+    <div class="row"><span class="row-label">General and private offices</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Lobbies, lounges, reception areas</span><span class="row-value">0–20 fc</span></div>
+    <div class="row"><span class="row-label">Mail sorting</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Off-set printing & duplicating area</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Spaces with VDTs</span><span class="row-value">75 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Paint Shop">
+    <div class="category-title">Paint Shop</div>
+    <div class="row"><span class="row-label">Spraying, rubbing, hand art, stencil</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Fine hand painting & finishing</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Paper Manufacturing">
+    <div class="category-title">Paper Manufacturing</div>
+    <div class="row"><span class="row-label">Beaters, grinding</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Finishing, cutting</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Hand coating</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Paper machine reel, inspection</span><span class="row-value">100–200 fc</span></div>
+    <div class="row"><span class="row-label">Rewinder</span><span class="row-value">100–200 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Printing">
+    <div class="category-title">Printing</div>
+    <div class="row"><span class="row-label">Photo engraving, etching, blocking</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Color inspecting</span><span class="row-value">100–200 fc</span></div>
+    <div class="row"><span class="row-label">Presses</span><span class="row-value">50–100 fc</span></div>
+    <div class="row"><span class="row-label">Proofreading</span><span class="row-value">100–200 fc</span></div>
+    <div class="row"><span class="row-label">Composing room</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Schools">
+    <div class="category-title">Schools</div>
+    <div class="row"><span class="row-label">Reading</span><span class="row-value">20–100 fc</span></div>
+    <div class="row"><span class="row-label">Typing</span><span class="row-value">20–100 fc</span></div>
+    <div class="row"><span class="row-label">Demonstrations</span><span class="row-value">100–200 fc</span></div>
+    <div class="row"><span class="row-label">Sewing</span><span class="row-value">20–100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Sheet Metal Works">
+    <div class="category-title">Sheet Metal Works</div>
+    <div class="row"><span class="row-label">General</span><span class="row-value">100 fc</span></div>
+    <div class="row"><span class="row-label">Tin plate inspection, galvanized, scribing</span><span class="row-value">100–200 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Stores">
+    <div class="category-title">Stores</div>
+    <div class="row"><span class="row-label">Circulation area stockroom</span><span class="row-value">10–30 fc</span></div>
+    <div class="row"><span class="row-label">Merchandising, serviced</span><span class="row-value">30–100 fc</span></div>
+    <div class="row"><span class="row-label">Merchandising, self-service</span><span class="row-value">200 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Textile Mills">
+    <div class="category-title">Textile Mills</div>
+    <div class="row"><span class="row-label">Cotton picking, carding, roving, spinning</span><span class="row-value">50 fc</span></div>
+    <div class="row"><span class="row-label">Beaming & slashing</span><span class="row-value">150 fc</span></div>
+    <div class="row"><span class="row-label">Drawing</span><span class="row-value">200 fc</span></div>
+    <div class="row"><span class="row-label">Others</span><span class="row-value">100 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Warehousing & Storage">
+    <div class="category-title">Warehousing & Storage</div>
+    <div class="row"><span class="row-label">Inactive</span><span class="row-value">5–10 fc</span></div>
+    <div class="row"><span class="row-label">Active — Rough bulky</span><span class="row-value">10–20 fc</span></div>
+    <div class="row"><span class="row-label">Active — Medium</span><span class="row-value">20 fc</span></div>
+    <div class="row"><span class="row-label">Active — Fine</span><span class="row-value">20–50 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Welding">
+    <div class="category-title">Welding</div>
+    <div class="row"><span class="row-label">General</span><span class="row-value">20–50 fc</span></div>
+  </div>
+
+  <div class="category" data-section="Woodworking">
+    <div class="category-title">Woodworking</div>
+    <div class="row"><span class="row-label">Rough sawing and bench work</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Sizing, planing, rough sanding, medium quality machine and bench work, gluing, veneering, cooperage</span><span class="row-value">20–50 fc</span></div>
+    <div class="row"><span class="row-label">Fine bench and machine work, fine sanding and finishing</span><span class="row-value">50–100 fc</span></div>
+  </div>
+
+  <div id="empty-state">No sections match your search.</div>
+
+</main>
+
+<footer>
+  <div class="footnote"><strong>(a)</strong> Obtained with a combination of general light plus specialized supplementary lighting.</div>
+  <div class="footnote"><strong>(k)</strong> Or not less than 1/5 the level in adjacent areas.</div>
+</footer>
+
+<script>
+  // Cache original text for highlight restore
+  const originalData = [];
+  document.querySelectorAll('.category').forEach(card => {
+    const titleEl = card.querySelector('.category-title');
+    const labels  = card.querySelectorAll('.row-label');
+    originalData.push({
+      card,
+      titleEl,
+      titleText: titleEl.textContent,
+      labels: Array.from(labels).map(el => ({ el, text: el.textContent }))
+    });
+  });
+
+  const TOTAL = originalData.length;
+  let activeSection = 'all';
+
+  function setChip(btn) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    activeSection = btn.dataset.section;
+    applyFilters();
+  }
+
+  function highlight(text, q) {
+    if (!q) return text;
+    const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(`(${esc})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  function applyFilters() {
+    const q  = document.getElementById('search').value.trim();
+    const ql = q.toLowerCase();
+    let visible = 0;
+
+    originalData.forEach(({ card, titleEl, titleText, labels }) => {
+      const sectionMatch = activeSection === 'all' || card.dataset.section === activeSection;
+      const textMatch    = !q || titleText.toLowerCase().includes(ql) ||
+                           labels.some(({ text }) => text.toLowerCase().includes(ql));
+      const show = sectionMatch && textMatch;
+
+      card.classList.toggle('hidden', !show);
+
+      if (show) {
+        visible++;
+        titleEl.innerHTML = highlight(titleText, q);
+        labels.forEach(({ el, text }) => { el.innerHTML = highlight(text, q); });
+      } else {
+        titleEl.textContent = titleText;
+        labels.forEach(({ el, text }) => { el.textContent = text; });
+      }
+    });
+
+    document.getElementById('visible-count').textContent = visible;
+    document.getElementById('empty-state').style.display = visible === 0 ? 'block' : 'none';
+  }
+</script>
+
+</body>
+</html>
